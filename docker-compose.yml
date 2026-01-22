@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  waf:
+    image: owasp/modsecurity-crs:nginx
+    container_name: waf-nginx
+    ports:
+      - "80:80"
+    environment:
+      - PARANOIA=1
+      - BACKEND=http://app-alvo:3000
+      - SEC_RULE_ENGINE=On
+      - PROXY_SSL=off
+    volumes:
+      - ./logs:/var/log/nginx
+    depends_on:
+      - app-alvo
+    networks:
+      - waf-network
+
+  app-alvo:
+    image: bkimminich/juice-shop
+    container_name: app-alvo
+    expose:
+      - "3000"
+    networks:
+      - waf-network
+
+networks:
+  waf-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
+
